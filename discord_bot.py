@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 import discord
 import asyncio
 import requests
+import aioconsole
 import config
 
 TOKEN = config.TOKEN
@@ -14,7 +15,7 @@ CHANNEL_ID = config.CHANNEL_ID
 intents = discord.Intents.default()  # Use default intents
 client = discord.Client(intents=intents)
 
-def login():
+async def login():
     # Setup webdriver
     webdriver_service = Service(ChromeDriverManager().install())
     chrome_options = Options()
@@ -31,7 +32,7 @@ def login():
     driver.get('https://avenue.mcmaster.ca/login.php?target=%2Fd2l%2Fhome%2F6605')
 
     # Wait for user to manually login
-    input("Press Enter to continue after you have logged in...")  
+    await aioconsole.ainput("Press Enter to continue after you have logged in...")  
 
     # Get cookies from the session and quit the driver
     cookies = driver.get_cookies()  
@@ -67,10 +68,10 @@ def check_for_updates(session):
 async def on_ready():
     try:
         # Log the bot in
-        driver = login()
+        session = await login()
         # Continuously check for updates every 60 seconds
         while True:  
-            check_for_updates(driver)
+            check_for_updates(session)
             await asyncio.sleep(60)  
     except Exception as e:
         print(f'Error in on_ready: {e}')
