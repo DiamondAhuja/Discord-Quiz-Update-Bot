@@ -15,6 +15,7 @@ pip install webdriver_manager
 pip install beautifulsoup4
 pip install discord.py
 pip install requests
+pip install aioconsole
 ```
 
 ## Using this bot
