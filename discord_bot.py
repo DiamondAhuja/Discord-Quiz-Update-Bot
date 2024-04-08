@@ -15,7 +15,7 @@ intents = discord.Intents.default()  # Use default intents
 client = discord.Client(intents=intents)
 
 def login():
-    print('Starting login function')
+    # Setup webdriver
     webdriver_service = Service(ChromeDriverManager().install())
     chrome_options = Options()
     chrome_options.add_argument("--disable-gpu")
@@ -27,19 +27,21 @@ def login():
 
     driver = webdriver.Chrome(service=webdriver_service, options=chrome_options)
     
+    # Open login page
     driver.get('https://avenue.mcmaster.ca/login.php?target=%2Fd2l%2Fhome%2F6605')
 
-    print('Please login manually.')
+    # Wait for user to manually login
     input("Press Enter to continue after you have logged in...")  
 
+    # Get cookies from the session and quit the driver
     cookies = driver.get_cookies()  
     driver.quit()  
 
+    # Create a requests session and add the cookies to it
     session = requests.Session()
     for cookie in cookies:
         session.cookies.set(cookie['name'], cookie['value'])  
 
-    print('Finished login function')
     return session
 
 previous_row_count = 2  
@@ -47,30 +49,31 @@ previous_row_count = 2
 def check_for_updates(session):
     global previous_row_count  
     try:
-        print('Starting check_for_updates function')
+        # Get the page and parse it with BeautifulSoup
         response = session.get('https://avenue.cllmcmaster.ca/d2l/lms/quizzing/user/quizzes_list.d2l?ou=600882')
-
         soup = BeautifulSoup(response.text, 'html.parser')
         rows = soup.find_all('tr')
-        print(f'Number of rows: {len(rows)}')
-        print(f'Previous number of rows: {previous_row_count}')
+
+        # If there are more rows than before, send a message to the discord channel
         if len(rows) > previous_row_count:  
             asyncio.run_coroutine_threadsafe(client.get_channel(CHANNEL_ID).send("A new quiz has been posted!"), client.loop)
 
+        # Update the row count
         previous_row_count = len(rows)  
-        print('Finished check_for_updates function')
     except Exception as e:
         print(f'Error in check_for_updates: {e}')
         
 @client.event
 async def on_ready():
     try:
-        print(f'Logged in as {client.user}')
+        # Log the bot in
         driver = login()
+        # Continuously check for updates every 60 seconds
         while True:  
             check_for_updates(driver)
             await asyncio.sleep(60)  
     except Exception as e:
         print(f'Error in on_ready: {e}')
 
+# Run the bot
 client.run(TOKEN)
