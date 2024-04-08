@@ -20,6 +20,6 @@ pip install aioconsole
 
 ## Using this bot
 
-Add a config.py file with your discord bot token and channel ID of where you want the messages to be received
+Add a `config.py` file with your discord bot token and channel ID of where you want the messages to be received
 
 To run, `python discord_bot.py`
